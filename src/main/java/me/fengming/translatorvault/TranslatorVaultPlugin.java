@@ -25,6 +25,10 @@ public class TranslatorVaultPlugin implements VaultPatcherPlugin {
     @Override
     public void start(Path mcPath) {
         this.mcPath = mcPath;
+        // Register modules embedded in mod jars before Vault Patcher builds its
+        // transformers. This is what makes TranslatorMinecraft output usable by
+        // simply installing the translated jar.
+        EmbeddedModuleLoader.load(mcPath);
         this.config = TranslatorVaultConfig.load(mcPath);
         VaultPatcher.LOGGER.info("TranslatorVault: extension started ({}).", config.isEnable() ? "enabled" : "disabled");
     }

@@ -2,19 +2,17 @@
 
 [![Build](https://github.com/lingxingmiao/TranslatorVault/actions/workflows/build.yml/badge.svg)](https://github.com/lingxingmiao/TranslatorVault/actions/workflows/build.yml)
 
-Vault Patcher 的**独立扩展插件**，只做一件事：
-
-> 把 Vault Patcher 模块已经加载的 `硬编码原文 -> 译文` 导出成当前游戏版本对应的标准 Minecraft 语言文件。
+Vault Patcher 的**独立扩展插件**：把 Vault Patcher 模块里的硬编码 `原文 -> 译文` 导出成当前游戏版本对应的标准 Minecraft 语言文件；同时能读取 mod jar 内嵌的 Vault Patcher 模块，让“翻译后的 mod jar”直接参与替换。
 
 **不修改 Vault Patcher 本体，不连接 TranslatorMinecraft，不调用任何翻译 API，不需要 key。**
 
 ## 安装
 
 1. 安装 Vault Patcher（≥ 1.5.4）。
-2. 把 `translatorvault-1.0.0.jar` 放到：
+2. 把 `translatorvault-1.1.0.jar` 放到：
 
    ```text
-   .minecraft/vaultpatcher/plugins/translatorvault-1.0.0.jar
+   .minecraft/vaultpatcher/plugins/translatorvault-1.1.0.jar
    ```
 
 3. 启动游戏。插件会在 Vault Patcher 加载完模块后读取所有 `Pairs` 并生成文件。
@@ -49,8 +47,6 @@ config/vaultpatcher_asm/translatorvault.json
 - `output_dir`：相对游戏根目录的输出目录。
 - `include_unchanged`：是否保留“原文=原文”的条目，默认不保留。
 
-插件只读取 Vault Patcher 模块里的 `k` / `v`；`v` 为空或与 `k` 相同的条目默认跳过。要补译文，请在 Vault Patcher 模块里写好 `v`，或先用你现有的翻译流程生成模块。
-
 ## 工作流程
 
 1. Vault Patcher 读取 `vaultpatcher/modules/*.json`，构建 `Pairs`。
@@ -59,6 +55,32 @@ config/vaultpatcher_asm/translatorvault.json
 4. 按版本写 `.lang` 或 `.json`。
 
 插件不会修改内存里的 `Pairs`，不会覆盖 `vaultpatcher/i18n`，也不会参与文本替换；替换仍然完全由 Vault Patcher 本体完成。
+
+## 内嵌模块：让翻译后的 mod jar 直接可用
+
+插件会在 `start()`（Vault Patcher 构建转换器之前）扫描：
+
+```text
+.minecraft/mods/*.jar
+  └── vaultpatcher/modules/<modid>-hardcoded.json
+  └── translatorvault/modules/<modid>-hardcoded.json
+```
+
+把这些模块里的 `k -> v` 注册到 `Utils.translationInfoMap`。随后 Vault Patcher 的 ASM 转换器会正常替换对应类里的 `LDC` 字符串。
+
+这正好配合 TranslatorMinecraft 的 `trans-hardcoded.py`：
+
+```text
+mod jar
+  → TranslatorMinecraft 扫描 .class 常量池、翻译硬编码文本
+  → 把 vaultpatcher/modules/<modid>-hardcoded.json 写回 jar
+  → 安装这个 jar + TranslatorVault + Vault Patcher
+  → TranslatorVault 读取内嵌模块
+  → Vault Patcher 替换 LDC，游戏内显示译文
+  → TranslatorVault 再导出 lang 文件
+```
+
+所以，**只装 TranslatorVault 不会替换**；替换由 Vault Patcher 完成。但有了内嵌模块，翻译后的 jar 不需要再手动把模块复制到 `vaultpatcher/modules`。
 
 ## 版本与加载器
 
@@ -78,7 +100,7 @@ $env:JAVA_HOME='C:\Program Files\Zulu\zulu17-jdk'
 产物：
 
 ```text
-build/libs/translatorvault-1.0.0.jar
+build/libs/translatorvault-1.1.0.jar
 ```
 
 `libs/vaultpatcher-1.5.4-api.jar` 只用于编译（`compileOnly`），不会打进插件 jar。
@@ -87,7 +109,8 @@ build/libs/translatorvault-1.0.0.jar
 
 - 干净 Vault Patcher 1.5.4（未修改）+ Java 8 + LaunchWrapper 模拟 1.12.2：插件正常加载，生成 `zh_CN.lang`。
 - 模拟 26.4：生成 `zh_cn.json`。
-- 插件 jar 只有 4 个 class，不包含任何 `me/fengming/vaultpatcher_asm/` 类。
+- mod jar 内嵌 `vaultpatcher/modules/sample-hardcoded.json`：模块被读取，`Sample` 类的 `LDC "Reactor Controller"` 被替换为 `反应堆控制器`。
+- 插件 jar 不包含任何 `me/fengming/vaultpatcher_asm/` 类。
 
 ## 许可证
 
