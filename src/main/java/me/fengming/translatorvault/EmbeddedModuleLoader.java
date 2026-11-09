@@ -123,7 +123,7 @@ final class EmbeddedModuleLoader {
 
             for (String target : targets) {
                 if (target == null || target.trim().isEmpty()) continue;
-                String normalized = target.trim().replace('.', '/');
+                String normalized = target.trim().replace('/', '.');
                 TranslationInfo.Mutable mutable = new TranslationInfo.Mutable(normalized);
                 mutable.setPairs(pairs);
                 Utils.addTranslationInfo(normalized, mutable.toImmutable());

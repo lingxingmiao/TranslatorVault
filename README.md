@@ -9,10 +9,10 @@ Vault Patcher 的**独立扩展插件**：把 Vault Patcher 模块里的硬编�
 ## 安装
 
 1. 安装 Vault Patcher（≥ 1.5.4）。
-2. 把 `translatorvault-1.1.0.jar` 放到：
+2. 把 `translatorvault-1.1.1.jar` 放到：
 
    ```text
-   .minecraft/vaultpatcher/plugins/translatorvault-1.1.0.jar
+   .minecraft/vaultpatcher/plugins/translatorvault-1.1.1.jar
    ```
 
 3. 启动游戏。插件会在 Vault Patcher 加载完模块后读取所有 `Pairs` 并生成文件。
@@ -100,7 +100,7 @@ $env:JAVA_HOME='C:\Program Files\Zulu\zulu17-jdk'
 产物：
 
 ```text
-build/libs/translatorvault-1.1.0.jar
+build/libs/translatorvault-1.1.1.jar
 ```
 
 `libs/vaultpatcher-1.5.4-api.jar` 只用于编译（`compileOnly`），不会打进插件 jar。
